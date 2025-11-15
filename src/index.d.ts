@@ -13,16 +13,16 @@ declare module "obsidian" {
   }
 
   export interface Workspace extends Events {
-    on(
-      name: "search:onChange",
-      callback: (embeddedSearchDOM: EmbeddedSearchDOMClass) => void,
-      ctx?: unknown,
-    ): EventRef;
-    on(
-      name: "catchEmbeddedSearch",
-      callback: (embeddedSearchConstructor: typeof EmbeddedSearchClass) => void,
-      ctx?: unknown,
-    ): EventRef;
+    // on(
+    //   name: "search:onChange",
+    //   callback: (embeddedSearchDOM: EmbeddedSearchDOMClass) => void,
+    //   ctx?: unknown,
+    // ): EventRef;
+    // on(
+    //   name: "catchEmbeddedSearch",
+    //   callback: (embeddedSearchConstructor: typeof EmbeddedSearchClass) => void,
+    //   ctx?: unknown,
+    // ): EventRef;
   }
 
   class EmbeddedSearchClass extends MarkdownRenderChild {
@@ -35,6 +35,7 @@ declare module "obsidian" {
   }
 
   class EmbeddedSearchDOMClass {
+    noteGalleryId: string;
     addResult(
       matchedFile: TFile,
       matchLoc: number[][],

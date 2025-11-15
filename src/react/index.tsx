@@ -16,6 +16,7 @@ interface NoteGalleryAppProps {
   sourcePath: string;
   settings: Settings;
   db: Database<dbHTMLEntry>;
+  noteGalleryId: string;
 }
 
 export default function NoteGalleryApp({
@@ -27,6 +28,7 @@ export default function NoteGalleryApp({
   sourcePath,
   settings,
   db,
+  noteGalleryId,
 }: NoteGalleryAppProps) {
   const [databaseReady, setDatabaseReady] = useState(false);
   const [embeddedSearch, setEmbeddedSearch] = useState<EmbeddedSearchClass | undefined>(
@@ -44,12 +46,15 @@ export default function NoteGalleryApp({
           new embeddedSearchConstructor(app, searchEl, settings.query, sourcePath),
         );
         setEmbeddedSearch(es);
+        console.log(`EmbeddedSearch instance created ${noteGalleryId}`);
       }
     };
+
     const ready = () => {
       if (!databaseReady) setDatabaseReady(true);
       if (plugin.EmbeddedSearch) createEmbeddedSearchInstance(plugin.EmbeddedSearch);
     };
+
     const notReady = () => {
       if (databaseReady) setDatabaseReady(false);
     };
@@ -57,22 +62,26 @@ export default function NoteGalleryApp({
     if (db.ready) ready();
     db.on("database-update", ready);
     db.on("database-drop", notReady);
-    app.workspace.on("catchEmbeddedSearch", createEmbeddedSearchInstance);
+
+    plugin.on(`catchEmbeddedSearch:${noteGalleryId}`, createEmbeddedSearchInstance);
     return () => {
       db.off("database-update", ready);
       db.off("database-drop", notReady);
-      app.workspace.off("catchEmbeddedSearch", createEmbeddedSearchInstance);
+      plugin.off(`catchEmbeddedSearch:${noteGalleryId}`, createEmbeddedSearchInstance);
     };
-  });
+
+  }, [noteGalleryId, embeddedSearch, db]);
 
   return (
     <AppMount
+      plugin={plugin}
       app={app}
       component={component}
       sourcePath={sourcePath}
       db={db}
       embeddedSearch={embeddedSearch}
       settings={settings}
+      noteGalleryId={noteGalleryId}
     >
       {!databaseReady && (
         <div>

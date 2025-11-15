@@ -4,6 +4,7 @@ import {
   Component,
   EmbeddedSearchClass,
   EmbeddedSearchDOMClass,
+  Events,
   MarkdownView,
   Plugin,
   TFile,
@@ -81,6 +82,7 @@ export default class NoteGalleryPlugin extends Plugin {
   public EmbeddedSearch: typeof EmbeddedSearchClass | null = null;
   public isEmbeddedSearchPatched = false;
   public db: Database<dbHTMLEntry>;
+  public events = new Events();
 
   /**
    * Called on plugin load.
@@ -109,6 +111,18 @@ export default class NoteGalleryPlugin extends Plugin {
    * This can be when the plugin is disabled or Obsidian is closed.
    */
   async onunload() {}
+
+  triggerSearchChange(noteGalleryId: string, embeddedSearchDOM: any) {
+    this.events.trigger(`search:onChange:${noteGalleryId}`, embeddedSearchDOM);
+  }
+
+  on(name: string, callback: (...data: any[]) => any, ctx?: any): void {
+    this.events.on(name, callback, ctx);
+  }
+
+  off(name: string, callback: (...data: any[]) => any): void {
+    this.events.off(name, callback);
+  }
 
   registerDb() {
     return new Database(
@@ -142,12 +156,8 @@ export default class NoteGalleryPlugin extends Plugin {
               ) {
                 const embeddedSearch = child as EmbeddedSearchClass;
                 if (!plugin.EmbeddedSearch) {
-                  plugin.EmbeddedSearch =
-                    embeddedSearch.constructor as typeof EmbeddedSearchClass;
-                  plugin.app.workspace.trigger(
-                    "catchEmbeddedSearch",
-                    embeddedSearch.constructor,
-                  );
+                  plugin.EmbeddedSearch = embeddedSearch.constructor as typeof EmbeddedSearchClass;
+                  plugin.app.workspace.trigger(`catchEmbeddedSearch:${embeddedSearch.dom?.noteGalleryId}`, plugin.EmbeddedSearch);
                 }
                 if (plugin.EmbeddedSearchLeafInitializer) {
                   setTimeout(() => {
@@ -212,6 +222,11 @@ export default class NoteGalleryPlugin extends Plugin {
                 this.el?.closest(".block-language-note-gallery")
               ) {
                 this.patched = true;
+                
+                // 获取关联的 CodeBlockNoteGallery 实例
+                const container = this.el.closest(".block-language-note-gallery") as HTMLElement;
+                this.noteGalleryId = container!.getAttribute("data-note-gallery-id")!.trim();
+
                 this.setSortOrder = (sortType: string) => {
                   console.log(
                     `Note Gallery: Setting native search sort order ${sortType}`,
@@ -263,8 +278,11 @@ export default class NoteGalleryPlugin extends Plugin {
         onChange(old: any) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return function (this: EmbeddedSearchDOMClass, ...args: any[]) {
-            try {
-              plugin.app.workspace.trigger("search:onChange", this);
+            try {     
+              // 只有当这是 note-gallery 的搜索组件时才触发事件   
+              if (this.patched) {
+                plugin.triggerSearchChange(this.noteGalleryId, this);   
+              }             
             } catch (err) {
               console.log({ type: "Patching EmbeddedSearchDOM.onChange Error", err });
             }

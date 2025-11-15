@@ -4,9 +4,10 @@ import { useContext } from "preact/hooks";
 
 import { Settings } from "~/code-block/settings";
 import { Database } from "~/index/database";
-import { dbHTMLEntry } from "~/main";
+import NoteGalleryPlugin, { dbHTMLEntry } from "~/main";
 
 interface ContextProps {
+  plugin: NoteGalleryPlugin;
   app: App;
   component: Component;
   sourcePath: string;
@@ -14,6 +15,7 @@ interface ContextProps {
   settings: Settings;
   embeddedSearch: EmbeddedSearchClass | undefined;
   children: ComponentChildren;
+  noteGalleryId: string;
 }
 
 const MountContext = createContext<ContextProps | null>(null);
