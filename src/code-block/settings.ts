@@ -11,6 +11,8 @@ export interface Settings {
   sortrandom: boolean;
   fontsize: string;
   showtitle: boolean;
+  overflow: boolean;
+  maxheight: string;
   debugquery: boolean;
   breakpoints: number | { default: number; [key: number]: number };
 }
@@ -25,6 +27,8 @@ const DEFAULT_SETTINGS: Settings = {
   sortrandom: false,
   fontsize: "6pt",
   showtitle: true,
+  overflow: false,
+  maxheight: "",
   debugquery: false,
   breakpoints: {
     default: 4,
@@ -35,10 +39,10 @@ const DEFAULT_SETTINGS: Settings = {
     2300: 7,
     1900: 6,
     1500: 5,
-    1000: 4,
-    700: 3,
-    400: 2,
-    200: 1,
+    1200: 4,
+    900: 3,
+    600: 2,
+    300: 1,
   },
 };
 

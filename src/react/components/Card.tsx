@@ -17,7 +17,7 @@ type CardProps = CardPropsI & React.HTMLAttributes<HTMLDivElement> & WithKeyProp
 
 export default function Card(props: CardProps) {
   const { file, ...rest } = props;
-  const { app, sourcePath } = useAppMount();
+  const { app, sourcePath, settings } = useAppMount();
   const handleClick = (event: MouseEvent): void => {
     const newLeaf =
       event.altKey && (event.ctrlKey || event.metaKey)
@@ -29,8 +29,15 @@ export default function Card(props: CardProps) {
       app.workspace.openLinkText(file.path, sourcePath, newLeaf);
     }
   };
+
+  // 样式
+  const cardStyle: React.CSSProperties = {
+    overflow: settings.overflow ? "auto" : undefined,
+    maxHeight: settings.maxheight || undefined
+  };
+
   return (
-    <div {...rest} className="note-card" onClick={handleClick}>
+    <div {...rest} className="note-card" style={cardStyle} onClick={handleClick}>
       {props.children}
     </div>
   );
