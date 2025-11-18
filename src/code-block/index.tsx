@@ -39,7 +39,7 @@ export default class CodeBlockNoteGallery extends MarkdownRenderChild {
     if (!this.plugin.EmbeddedSearch) {
       await this.plugin.triggerEmbeddedSearchPatch();
     } else {
-      this.plugin.app.workspace.trigger(`catchEmbeddedSearch:${this.noteGalleryId}`, this.plugin.EmbeddedSearch);
+      this.plugin.trigger(`catchEmbeddedSearch:${this.noteGalleryId}`, this.plugin.EmbeddedSearch);
     }
     
     render(

@@ -46,7 +46,6 @@ export default function NoteGalleryApp({
           new embeddedSearchConstructor(app, searchEl, settings.query, sourcePath),
         );
         setEmbeddedSearch(es);
-        console.log(`EmbeddedSearch instance created ${noteGalleryId}`);
       }
     };
 

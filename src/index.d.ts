@@ -12,18 +12,18 @@ declare module "obsidian" {
     cm: CodeMirror.Editor;
   }
 
-  export interface Workspace extends Events {
-    // on(
-    //   name: "search:onChange",
-    //   callback: (embeddedSearchDOM: EmbeddedSearchDOMClass) => void,
-    //   ctx?: unknown,
-    // ): EventRef;
-    // on(
-    //   name: "catchEmbeddedSearch",
-    //   callback: (embeddedSearchConstructor: typeof EmbeddedSearchClass) => void,
-    //   ctx?: unknown,
-    // ): EventRef;
-  }
+  // export interface Workspace extends Events {
+  //   on(
+  //     name: "search:onChange",
+  //     callback: (embeddedSearchDOM: EmbeddedSearchDOMClass) => void,
+  //     ctx?: unknown,
+  //   ): EventRef;
+  //   on(
+  //     name: "catchEmbeddedSearch",
+  //     callback: (embeddedSearchConstructor: typeof EmbeddedSearchClass) => void,
+  //     ctx?: unknown,
+  //   ): EventRef;
+  // }
 
   class EmbeddedSearchClass extends MarkdownRenderChild {
     constructor(app: App, el: HTMLElement, query: string, sourcePath: string);

@@ -60,7 +60,7 @@ export class Database<T> extends EventComponent {
    */
   databaseUpdate = debounce(
     () => {
-      this.trigger("database-update", this.allEntries());
+      //this.trigger("database-update", this.allEntries());
       this.flushChanges();
     },
     100,
@@ -73,7 +73,7 @@ export class Database<T> extends EventComponent {
   flushChanges = debounce(
     async () => {
       await this.persistMemory();
-      this.trigger("database-update", this.allEntries());
+      //this.trigger("database-update", this.allEntries());
     },
     1000,
     true,

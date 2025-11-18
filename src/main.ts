@@ -110,10 +110,10 @@ export default class NoteGalleryPlugin extends Plugin {
    * Called on plugin unload.
    * This can be when the plugin is disabled or Obsidian is closed.
    */
-  async onunload() {}
+  async onunload() { }
 
-  triggerSearchChange(noteGalleryId: string, embeddedSearchDOM: any) {
-    this.events.trigger(`search:onChange:${noteGalleryId}`, embeddedSearchDOM);
+  trigger(name: string, data: any) {
+    this.events.trigger(name, data);
   }
 
   on(name: string, callback: (...data: any[]) => any, ctx?: any): void {
@@ -157,7 +157,7 @@ export default class NoteGalleryPlugin extends Plugin {
                 const embeddedSearch = child as EmbeddedSearchClass;
                 if (!plugin.EmbeddedSearch) {
                   plugin.EmbeddedSearch = embeddedSearch.constructor as typeof EmbeddedSearchClass;
-                  plugin.app.workspace.trigger(`catchEmbeddedSearch:${embeddedSearch.dom?.noteGalleryId}`, plugin.EmbeddedSearch);
+                  plugin.trigger(`catchEmbeddedSearch:${embeddedSearch.dom?.noteGalleryId}`, plugin.EmbeddedSearch);
                 }
                 if (plugin.EmbeddedSearchLeafInitializer) {
                   setTimeout(() => {
@@ -222,15 +222,15 @@ export default class NoteGalleryPlugin extends Plugin {
                 this.el?.closest(".block-language-note-gallery")
               ) {
                 this.patched = true;
-                
+
                 // 获取关联的 CodeBlockNoteGallery 实例
                 const container = this.el.closest(".block-language-note-gallery") as HTMLElement;
                 this.noteGalleryId = container!.getAttribute("data-note-gallery-id")!.trim();
 
                 this.setSortOrder = (sortType: string) => {
-                  console.log(
-                    `Note Gallery: Setting native search sort order ${sortType}`,
-                  );
+                  // console.log(
+                  //   `Note Gallery: Setting native search sort order ${sortType}`,
+                  // );
                   this.sortOrder = sortType;
                   this.changed();
                   this.infinityScroll.invalidateAll();
@@ -278,11 +278,10 @@ export default class NoteGalleryPlugin extends Plugin {
         onChange(old: any) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           return function (this: EmbeddedSearchDOMClass, ...args: any[]) {
-            try {     
-              // 只有当这是 note-gallery 的搜索组件时才触发事件   
+            try {
               if (this.patched) {
-                plugin.triggerSearchChange(this.noteGalleryId, this);   
-              }             
+                plugin.trigger(`searchChange:${this.noteGalleryId}`, this);
+              }
             } catch (err) {
               console.log({ type: "Patching EmbeddedSearchDOM.onChange Error", err });
             }

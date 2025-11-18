@@ -160,14 +160,11 @@ export const useFiles = () => {
   const { plugin, app, db, sourcePath, settings, embeddedSearch, noteGalleryId } = useAppMount();
   const [error, setError] = useState<string | null>(null);
   const [files, setFiles] = useState<TFile[]>([]);
-  const filesRef = useRef<TFile[]>([]); // 添加 ref 来保存最新值
   const randomSeed = useRef(Math.floor(Math.random() * 100000));
 
-  // TODO: magic number to global constant
-  const DEBOUNCE_TIMEOUT = 200;
+  const DEBOUNCE_TIMEOUT = 300;
 
   useEffect(() => {
-    filesRef.current = files;
 
     const reloadPathFiles = () => {
       const { files: newFiles, error } = getFileList(app, settings);
@@ -205,45 +202,34 @@ export const useFiles = () => {
     ) => {
       if (style) adjustStyle(update, settings);
 
-      // 分别获取各类文件
       const pathFiles = reloadPathFiles();
       const queryFiles = reloadQueryFiles(update);
 
-      // 只有当有新文件时才进行合并和去重
-      if (pathFiles.length > 0 || queryFiles.length > 0) {
-        // 使用 Map 进行高效去重，优先保留 queryFiles 中的文件（通常更新）
-        const fileMap = new Map<string, TFile>();
+      const fileMap = new Map<string, TFile>();
+      pathFiles.forEach(file => fileMap.set(file.path, file));
+      queryFiles.forEach(file => fileMap.set(file.path, file));
 
-        filesRef.current.forEach(file => fileMap.set(file.path, file));
-        pathFiles.forEach(file => fileMap.set(file.path, file));
-        queryFiles.forEach(file => fileMap.set(file.path, file));
+      const newFiles = Array.from(fileMap.values());
+      const filteredFiles = filterFileList(newFiles, db, sourcePath, settings, randomSeed.current);
 
-        const allFiles = Array.from(fileMap.values());
-        const filteredFiles = filterFileList(allFiles, db, sourcePath, settings, randomSeed.current);
-
-        // 只有当文件列表实际发生变化时才更新状态
-        if (filteredFiles.length !== files.length ||
-          filteredFiles.some((file, index) => files[index]?.path !== file.path)) {
-          setFiles(filteredFiles);
-          console.log(`[Note Gallery]- ${noteGalleryId} Found ${filteredFiles.length} files`);
-        } else {
-          console.log(`[Note Gallery]- ${noteGalleryId} No changes found, path files: ${pathFiles.length}, query files: ${queryFiles.length}`);
-        }
-      }
+      setFiles(filteredFiles);
     };
-    if (!files.length) reloadFiles(embeddedSearch?.dom, true);
 
-    const debouncedReloadFiles = debounce(reloadFiles, DEBOUNCE_TIMEOUT, false);
-    const ready = () => debouncedReloadFiles(embeddedSearch?.dom, false);
+    const handleSearchChange = debounce((update: EmbeddedSearchDOMClass | undefined) => {
+      reloadFiles(update, true);
+    }, DEBOUNCE_TIMEOUT, false);
 
-    plugin.on(`search:onChange:${noteGalleryId}`, debouncedReloadFiles);
+    const ready = () => handleSearchChange(embeddedSearch?.dom);
 
+    if (!files.length) ready();
+
+    plugin.on(`searchChange:${noteGalleryId}`, ready);
     db.on("database-update", ready);
     return () => {
-      plugin.off(`search:onChange:${noteGalleryId}`, debouncedReloadFiles);
+      plugin.off(`searchChange:${noteGalleryId}`, ready);
       db.off("database-update", ready);
     };
-  }, [noteGalleryId, files]);
+  }, [noteGalleryId]);
 
   return { error, files };
 };
