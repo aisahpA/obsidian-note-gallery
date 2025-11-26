@@ -83,6 +83,7 @@ export default class NoteGalleryPlugin extends Plugin {
   public isEmbeddedSearchPatched = false;
   public db: Database<dbHTMLEntry>;
   public events = new Events();
+  private debounceMap: Map<string, number> = new Map(); // 用于存储每个 noteGalleryId 的定时器 ID
 
   /**
    * Called on plugin load.
@@ -122,6 +123,22 @@ export default class NoteGalleryPlugin extends Plugin {
 
   off(name: string, callback: (...data: any[]) => any): void {
     this.events.off(name, callback);
+  }
+
+  // 添加一个防抖方法
+  private debounce(func: Function, delay: number, id: string): void {
+    // 清除之前的定时器
+    if (this.debounceMap.has(id)) {
+      clearTimeout(this.debounceMap.get(id)!);
+    }
+
+    // 设置新的定时器
+    const timerId = window.setTimeout(() => {
+      func();
+      this.debounceMap.delete(id);
+    }, delay);
+
+    this.debounceMap.set(id, timerId);
   }
 
   registerDb() {
@@ -280,7 +297,12 @@ export default class NoteGalleryPlugin extends Plugin {
           return function (this: EmbeddedSearchDOMClass, ...args: any[]) {
             try {
               if (this.patched) {
-                plugin.trigger(`searchChange:${this.noteGalleryId}`, this);
+                // 使用防抖限制触发频率，1秒内只执行最后的一次
+                plugin.debounce(
+                  () => plugin.trigger(`searchChange:${this.noteGalleryId}`, this),
+                  1000,
+                  this.noteGalleryId
+                );
               }
             } catch (err) {
               console.log({ type: "Patching EmbeddedSearchDOM.onChange Error", err });
